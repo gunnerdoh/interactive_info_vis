@@ -1,6 +1,6 @@
 registerSketch('sk4', function (p) {
   /* Thank you do Daniel Schiffman, to whom this code is 
-  inspired by and built off of. */ 
+  inspired by and built off of. */
   let xspacing = 16;     // distance between each x point
   let amplitude = 75.0;  // wave height
   let period = 500.0;    // how many pixels before wave repeats
