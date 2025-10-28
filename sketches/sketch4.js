@@ -1,72 +1,111 @@
-registerSketch('sk2', function (p) {
+registerSketch("sk4", function (p) {
+  const cols = 15, rows = 4, size = 60, pad = 100;
+  const sounds = ["kick", "blip", null];
+  let cells = [], kick, blip;
+  let lastSecond = -1;
+
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
+
+    // grid
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        cells.push({ x: pad + i * size, y: pad + j * size, sound: null });
+      }
+    }
+
+    kick = new p5.Oscillator("sine");
+    blip = new p5.Oscillator("square");
+    kick.start(); kick.amp(0);
+    blip.start(); blip.amp(0);
+
+    p.textFont('monospace');
+    p.textSize(32);
+    p.fill(20);
   };
-  
+
   p.draw = function () {
-    p.background(0);
-
-    const h = p.windowHeight / 2
-    let hrDiameter = 200;
-    let minDiameter = 150;
-    let secDiameter = 50;
-
-    let stars = [
-      { x: p.windowWidth * 0.25, y: h, size: hrDiameter, color: "#FF0000" },
-      { x: p.windowWidth * 0.5, y: h, size: minDiameter, color: "#FF8200" },
-      { x: p.windowWidth * 0.75, y: h, size: secDiameter, color: "#FFC100" },
-    ]
-
-    p.starShade(h);
-    p.clock(stars, hrDiameter, minDiameter, secDiameter)
+    p.background(240);
+    drawClock();   
+    drawGrid();
+    playAndDrawNotes();
   };
 
-  p.starShade = function(h) {
-    let c = p.color(255, 0, 0); 
-    c.setAlpha(70);
-    p.fill(c);                 
-    p.circle(p.windowWidth * 0.25, h, 200); 
+  function drawClock() {
+    const h = p.hour();
+    const m = p.minute();
+    const s = p.second();
+    const timeLabel = `${p.nf(h, 2)}:${p.nf(m, 2)}:${p.nf(s, 2)}. Click on a box to change the sound!`;
 
-    c = p.color(255, 130, 0); 
-    c.setAlpha(70);
-    p.fill(c);          
-    p.circle(p.windowWidth * 0.5, h, 150); 
+    p.noStroke();
+    p.fill(30);
+    p.textAlign(p.LEFT, p.TOP);
+    p.text(timeLabel, 20, 20);
 
-    c = p.color(255, 193, 0); 
-    c.setAlpha(70);
-    p.fill(c);                 
-    p.circle(p.windowWidth * 0.75, h, 50); 
+    p.text("1 click: kick, 2 clicks: blip.", 20, 55)
   }
 
-  p.clock = function(stars, hrDiameter, minDiameter, secDiameter) {
-    let hr = p.hour() % 12; 
-    let min = p.minute() % 60;
-    let sec = p.second() % 60;
-    let ms = p.millis() % 1000;
-
-    
-    for (let s of stars) {
-      p.fill(s.color);
-      p.noStroke();
-      if (s.color == "#FF0000") {
-        s.size = p.map(min, 60, 0, 0, s.size); 
-        p.circle(s.x, s.y, s.size, s.color);
-      } else if (s.color == "#FF8200") {
-        s.size = p.map(sec, 60, 0, 0, s.size); 
-        p.circle(s.x, s.y, s.size, s.color);
-      } else {
-        s.size = p.map(ms, 0, 1000, s.size, 0); 
-        p.circle(s.x, s.y, s.size, s.color);
-      }
+  function drawGrid() {
+    for (let c of cells) {
+      p.stroke(180);
+      if (c.sound === "kick") p.fill("#ff6666");
+      else if (c.sound === "blip") p.fill("#66aaff");
+      else p.noFill();
+      p.square(c.x, c.y, size);
     }
   }
 
-  function triggerNoise() {
+  function playAndDrawNotes() {
+    const currSecond = p.second();
+    const idx = currSecond % cells.length;
+    const c = cells[idx];
 
+    drawNote(c.x + size / 2, c.y + size / 2);
+
+    if (currSecond !== lastSecond) {
+      if (c.sound === "kick") playKick();
+      if (c.sound === "blip") playBlip();
+      lastSecond = currSecond;
+    }
   }
 
+  function drawNote(x, y) {
+    const w = 25, h = 18, stem = 40;
+    p.push();
+    p.translate(x, y);
+    p.fill(0); p.noStroke();
+    p.ellipse(0, 0, w, h);
+    p.stroke(0); p.strokeWeight(3);
+    p.line(w / 2 - 2, -h / 4, w / 2 - 2, -stem);
+    p.pop();
+  }
 
-  p.windowResized = function () { 
-    p.resizeCanvas(p.windowWidth, p.windowHeight); 
+  function playKick() {
+    kick.freq(100);
+    kick.amp(0.6, 0.002);
+    kick.freq(40, 0.05);
+    kick.amp(0, 0.08);
+  }
+
+  function playBlip() {
+    blip.freq(600);
+    blip.amp(0.4, 0.002);
+    blip.amp(0, 0.03);
+  }
+
+  p.mousePressed = function () {
+    for (let c of cells) {
+      if (
+        p.mouseX > c.x && p.mouseX < c.x + size &&
+        p.mouseY > c.y && p.mouseY < c.y + size
+      ) {
+        const i = sounds.indexOf(c.sound);
+        c.sound = sounds[(i + 1) % sounds.length];
+      }
+    }
+  };
+
+  p.windowResized = function () {
+    p.resizeCanvas(p.windowWidth, p.windowHeight);
   };
 });

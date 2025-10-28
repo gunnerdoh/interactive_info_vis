@@ -84,6 +84,11 @@ registerSketch('sk7', function (p) {
 
   }
 
-
+  p.remove = function() {
+    hrOsc.stop();
+    minOsc.stop();
+    secOsc.stop();
+  };
+  
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 });

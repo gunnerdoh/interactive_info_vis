@@ -1,4 +1,4 @@
-registerSketch('sk4', function (p) {
+registerSketch('sk3', function (p) {
   /* Thank you do Daniel Schiffman, to whom this code is 
   inspired by and built off of. */
   let xspacing = 16;     // distance between each x point
@@ -44,7 +44,14 @@ registerSketch('sk4', function (p) {
     let x = theta; 
     for (let i = 0; i < yArray.length; i++) {
       yArray[i] = p.sin(x) * amplitude;
-      x += dx;
+      if (col == "#FF0000") {
+        x += dx;
+      } else if (col == "#FF8200") {
+        x += dx * 2;
+      } else {
+        x += dx * 4;
+      }
+      
     }
 
     p.fill(col);
